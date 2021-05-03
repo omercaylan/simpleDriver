@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdint.h>
+#include <vector>
 
 typedef enum
 {
@@ -113,23 +114,44 @@ private:
     SPI_Cs cs;
     SPI_Clk clk;
 };
+
 #define semaphore int
+
+int TakeMutex(semaphore mutex, int timeDelay)
+{
+    return 0;
+}
+
+int GiveMutex(semaphore mutex)
+{
+    return 0;
+}
 class GPS
 {
 
 public:
     SPI_Com *SPI;
-    semaphore semaphoreGps;
+    semaphore *semaphoreGps;
     GPS(SPI_Com &SPI)
     {
         this->SPI = &SPI;
         this->SPI->SystemMonitor();
     }
 
+    GPS(SPI_Com &SPI, semaphore semp)
+    {
+        this->semaphoreGps = &semp;
+        this->SPI = &SPI;
+        this->SPI->SystemMonitor();
+        std::cout << *(this->semaphoreGps) << std::endl;
+    }
+
     void GetGPS_Speed()
     {
-        if(semaphoreGps == 1){ //xsemaphoreTake
+        if (TakeMutex(*semaphoreGps, 100))
+        { //xsemaphoreTake
 
+            GiveMutex(*semaphoreGps);
         }
         this->SPI->SystemMonitor();
     }
@@ -143,7 +165,7 @@ int main()
 
     GPS GPS1(SPI0);
     GPS1.GetGPS_Speed();
-    GPS GPS2(SPI0_1);
+    GPS GPS2(SPI0_1, 12);
     GPS2.GetGPS_Speed();
 
     return 0;
